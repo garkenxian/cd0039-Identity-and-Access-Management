@@ -105,6 +105,7 @@ Stop conditions:
 
 Goal:
 - Implement all required API routes and error handlers with layered architecture.
+- Set up CI/CD infrastructure to run tests automatically.
 
 Inputs:
 - backend/src/api.py
@@ -122,21 +123,35 @@ Execution steps:
 3. Implement structured error handlers for 404, 422, and AuthError at minimum.
 4. Create minimal service/data-access modules if needed to keep API layer thin.
 5. Add endpoint tests covering role access, token failures, and CRUD lifecycle.
-6. Run coverage and verify backend is >= 80%.
-7. Log evidence and residual risks in PROJECT_PROGRESS.
+6. Create `.github/workflows/tests.yml` GitHub Actions workflow to:
+   - Run backend pytest on push/PR
+   - Report coverage results
+   - Fail if coverage < 80%
+7. Create `.github/pull_request_template.md` with checklist for:
+   - Tests pass locally
+   - Coverage requirements met
+   - No secrets committed
+   - API contract unchanged (if applicable)
+8. Run coverage and verify backend is >= 80%.
+9. Log evidence and residual risks in PROJECT_PROGRESS.
 
 Acceptance checks:
 - Endpoint contract exactly matches API spec.
 - Role behavior matches source-of-truth matrix.
 - Backend test suite passes with coverage >= 80%.
+- GitHub Actions workflow runs successfully on PR/push.
+- PR template is in place and enforced.
 
 Required evidence to log:
 - Endpoint test matrix (route x role x expected status)
 - Coverage percent and command used
+- GitHub Actions workflow execution proof (screenshot or log)
+- PR template in place confirmation
 
 Stop conditions:
 - Any endpoint rename/path change is proposed.
 - Coverage target not met after reasonable iteration.
+- GitHub Actions workflow fails to execute.
 
 ## Packet P3 - Phase 3 Frontend Integration
 
