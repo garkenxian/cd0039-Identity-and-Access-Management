@@ -10,7 +10,6 @@ Jinja2==3.0.0
 lazy-object-proxy==1.4.0
 MarkupSafe==2.0.1
 mccabe==0.6.1
-pycryptodome==3.3.1
 pylint==2.3.1
 python-jose[cryptography]==3.3.0
 six==1.12.0
@@ -19,3 +18,4 @@ Werkzeug==2.0.0
 wrapt==1.11.1
 Flask-Cors==3.0.8
 SQLAlchemy==1.4.41
+auth0-python==6.5.0
