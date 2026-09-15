@@ -80,13 +80,14 @@ test: test-backend test-frontend ## Run all tests (backend + frontend)
 
 test-backend: ## Run backend unit tests
 	echo [Backend] Running pytest tests...
-	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ -v --tb=short
-	echo Backend tests passed
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ --tb=short
 
 test-backend-coverage: ## Run backend tests with coverage report
+	echo [Backend] Installing coverage dependencies...
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pip install -q pytest-cov
 	echo [Backend] Running pytest with coverage...
-	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ -v --cov=src --cov-report=html
-	echo Coverage report generated in htmlcov/index.html
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ --cov=src --cov-report=term-missing --cov-report=html --cov-report=xml
+	echo Coverage report created in: htmlcov/index.html
 
 test-frontend: ## Run frontend tests (Karma)
 	echo [Frontend] Running Karma tests...
