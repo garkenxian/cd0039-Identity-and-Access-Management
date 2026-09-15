@@ -78,6 +78,8 @@ run-frontend: ## Run Ionic frontend (port 8100)
 
 test: test-backend test-frontend ## Run all tests (backend + frontend)
 
+test-coverage: test-backend-coverage test-frontend
+
 test-backend: ## Run backend unit tests
 	echo [Backend] Running pytest tests...
 	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ --tb=short
@@ -93,6 +95,8 @@ test-frontend: ## Run frontend tests (Karma)
 	echo [Frontend] Running Karma tests...
 	cd /d "$(FRONTEND_DIR)" && cmd /C "set NODE_OPTIONS=$(NODE_OPTIONS) && npm test -- --watch=false --browsers=ChromeHeadless"
 	echo Frontend tests passed
+
+test-frontend-converage: test-frontend ## will put coverage report here when its ready
 
 lint: lint-backend lint-frontend ## Run linters (backend + frontend)
 
