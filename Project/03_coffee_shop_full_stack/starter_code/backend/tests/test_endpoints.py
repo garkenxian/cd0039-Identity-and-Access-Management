@@ -310,5 +310,337 @@ class EndpointStructureTests(unittest.TestCase):
         self.assertNotEqual(response.status_code, 404)
 
 
+class AuthenticatedEndpointTests(unittest.TestCase):
+    """Test authenticated endpoints with valid and invalid tokens/permissions"""
+
+    def setUp(self):
+        """Set up test client with auth mocking"""
+        self.app = app
+        self.app.config['TESTING'] = True
+        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
+        self.app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+        
+        # Patch requires_auth before creating client
+        self.patcher = patch('src.auth.auth.verify_decode_jwt')
+        self.mock_verify = self.patcher.start()
+        
+        # Clean up any existing tables and start fresh
+        with self.app.app_context():
+            db.drop_all()
+            db.create_all()
+            self._setup_test_drinks()
+        
+        self.client = self.app.test_client()
+    
+    def tearDown(self):
+        """Clean up after tests"""
+        self.patcher.stop()
+        with self.app.app_context():
+            db.drop_all()
+    
+    def _setup_test_drinks(self):
+        """Set up initial test data"""
+        drink1 = Drink(
+            title='Water',
+            recipe='[{"name": "water", "color": "blue", "parts": 1}]'
+        )
+        drink2 = Drink(
+            title='Coffee',
+            recipe='[{"name": "coffee", "color": "brown", "parts": 1}]'
+        )
+        drink1.insert()
+        drink2.insert()
+    
+    # ==================== GET /drinks-detail Authenticated Tests ====================
+    
+    def test_get_drinks_detail_success_with_permission(self):
+        """Test GET /drinks-detail succeeds with valid token and get:drinks-detail permission"""
+        # Mock JWT verification to return a valid payload with required permission
+        self.mock_verify.return_value = {
+            'permissions': ['get:drinks-detail'],
+            'sub': 'test_user|123'
+        }
+        
+        response = self.client.get(
+            '/drinks-detail',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertIsInstance(data['drinks'], list)
+        self.assertGreaterEqual(len(data['drinks']), 2)
+        
+        # Verify long format (includes name in recipe)
+        for drink in data['drinks']:
+            self.assertIn('id', drink)
+            self.assertIn('title', drink)
+            self.assertIn('recipe', drink)
+            self.assertGreater(len(drink['recipe']), 0)
+            for item in drink['recipe']:
+                self.assertIn('name', item)
+                self.assertIn('color', item)
+                self.assertIn('parts', item)
+    
+    def test_get_drinks_detail_insufficient_permission(self):
+        """Test GET /drinks-detail fails with insufficient permissions"""
+        # Mock JWT verification to return a payload without the required permission
+        self.mock_verify.return_value = {
+            'permissions': [],  # Missing 'get:drinks-detail'
+            'sub': 'test_user|123'
+        }
+        
+        response = self.client.get(
+            '/drinks-detail',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 403)
+        data = json.loads(response.data)
+        self.assertFalse(data['success'])
+    
+    # ==================== POST /drinks Authenticated Tests ====================
+    
+    def test_post_drink_success_with_permission(self):
+        """Test POST /drinks succeeds with valid token and post:drinks permission"""
+        self.mock_verify.return_value = {
+            'permissions': ['post:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        new_drink = {
+            'title': 'Tea',
+            'recipe': [{'name': 'tea', 'color': 'amber', 'parts': 1}]
+        }
+        
+        response = self.client.post(
+            '/drinks',
+            data=json.dumps(new_drink),
+            content_type='application/json',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertEqual(len(data['drinks']), 1)
+        self.assertEqual(data['drinks'][0]['title'], 'Tea')
+    
+    def test_post_drink_duplicate_title_returns_422(self):
+        """Test POST /drinks with duplicate title returns 422"""
+        self.mock_verify.return_value = {
+            'permissions': ['post:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        duplicate_drink = {
+            'title': 'Water',  # Already exists
+            'recipe': [{'name': 'water', 'color': 'blue', 'parts': 2}]
+        }
+        
+        response = self.client.post(
+            '/drinks',
+            data=json.dumps(duplicate_drink),
+            content_type='application/json',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 422)
+        data = json.loads(response.data)
+        self.assertFalse(data['success'])
+        self.assertEqual(data['error'], 422)
+    
+    def test_post_drink_missing_title_returns_400(self):
+        """Test POST /drinks with missing title returns 400"""
+        self.mock_verify.return_value = {
+            'permissions': ['post:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        invalid_drink = {
+            'recipe': [{'name': 'tea', 'color': 'amber', 'parts': 1}]
+            # Missing title
+        }
+        
+        response = self.client.post(
+            '/drinks',
+            data=json.dumps(invalid_drink),
+            content_type='application/json',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertFalse(data['success'])
+    
+    def test_post_drink_invalid_recipe_format_returns_400(self):
+        """Test POST /drinks with non-list recipe returns 400"""
+        self.mock_verify.return_value = {
+            'permissions': ['post:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        invalid_drink = {
+            'title': 'BadDrink',
+            'recipe': 'not a list'  # Should be a list
+        }
+        
+        response = self.client.post(
+            '/drinks',
+            data=json.dumps(invalid_drink),
+            content_type='application/json',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertFalse(data['success'])
+    
+    # ==================== PATCH /drinks/<id> Authenticated Tests ====================
+    
+    def test_patch_drink_success_with_permission(self):
+        """Test PATCH /drinks/<id> succeeds with valid token and patch:drinks permission"""
+        self.mock_verify.return_value = {
+            'permissions': ['patch:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        update_data = {'title': 'Hot Water'}
+        
+        response = self.client.patch(
+            '/drinks/1',
+            data=json.dumps(update_data),
+            content_type='application/json',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertEqual(data['drinks'][0]['title'], 'Hot Water')
+    
+    def test_patch_drink_not_found_returns_404(self):
+        """Test PATCH /drinks/<id> with non-existent id returns 404"""
+        self.mock_verify.return_value = {
+            'permissions': ['patch:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        update_data = {'title': 'Non-existent'}
+        
+        response = self.client.patch(
+            '/drinks/9999',
+            data=json.dumps(update_data),
+            content_type='application/json',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertFalse(data['success'])
+    
+    def test_patch_drink_update_recipe(self):
+        """Test PATCH /drinks/<id> can update recipe"""
+        self.mock_verify.return_value = {
+            'permissions': ['patch:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        new_recipe = [
+            {'name': 'hot_water', 'color': 'clear', 'parts': 1},
+            {'name': 'lemon', 'color': 'yellow', 'parts': 0.5}
+        ]
+        update_data = {'recipe': new_recipe}
+        
+        response = self.client.patch(
+            '/drinks/1',
+            data=json.dumps(update_data),
+            content_type='application/json',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertEqual(len(data['drinks'][0]['recipe']), 2)
+    
+    def test_patch_drink_insufficient_permission(self):
+        """Test PATCH /drinks/<id> fails with insufficient permissions"""
+        self.mock_verify.return_value = {
+            'permissions': [],  # Missing 'patch:drinks'
+            'sub': 'test_user|123'
+        }
+        
+        update_data = {'title': 'Updated'}
+        
+        response = self.client.patch(
+            '/drinks/1',
+            data=json.dumps(update_data),
+            content_type='application/json',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 403)
+        data = json.loads(response.data)
+        self.assertFalse(data['success'])
+    
+    # ==================== DELETE /drinks/<id> Authenticated Tests ====================
+    
+    def test_delete_drink_success_with_permission(self):
+        """Test DELETE /drinks/<id> succeeds with valid token and delete:drinks permission"""
+        self.mock_verify.return_value = {
+            'permissions': ['delete:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        response = self.client.delete(
+            '/drinks/1',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        self.assertTrue(data['success'])
+        self.assertEqual(data['delete'], 1)
+        
+        # Verify drink was actually deleted
+        get_response = self.client.get('/drinks')
+        get_data = json.loads(get_response.data)
+        self.assertEqual(len(get_data['drinks']), 1)
+    
+    def test_delete_drink_not_found_returns_404(self):
+        """Test DELETE /drinks/<id> with non-existent id returns 404"""
+        self.mock_verify.return_value = {
+            'permissions': ['delete:drinks'],
+            'sub': 'test_user|123'
+        }
+        
+        response = self.client.delete(
+            '/drinks/9999',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 404)
+        data = json.loads(response.data)
+        self.assertFalse(data['success'])
+    
+    def test_delete_drink_insufficient_permission(self):
+        """Test DELETE /drinks/<id> fails with insufficient permissions"""
+        self.mock_verify.return_value = {
+            'permissions': [],  # Missing 'delete:drinks'
+            'sub': 'test_user|123'
+        }
+        
+        response = self.client.delete(
+            '/drinks/1',
+            headers={'Authorization': 'Bearer mock_token'}
+        )
+        
+        self.assertEqual(response.status_code, 403)
+        data = json.loads(response.data)
+        self.assertFalse(data['success'])
+
+
 if __name__ == '__main__':
     unittest.main()

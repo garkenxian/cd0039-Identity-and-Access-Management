@@ -31,13 +31,13 @@ jobs:
     - name: Run tests with coverage
       run: |
         cd Project/03_coffee_shop_full_stack/starter_code/backend
-        pytest tests/ --cov=src --cov-report=xml --cov-report=term --cov-report=html
+        pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing --cov-report=html --cov-fail-under=80
 
     - name: Report coverage (target: 80%)
       run: |
         cd Project/03_coffee_shop_full_stack/starter_code/backend
         coverage report
-        echo "📊 Coverage Report Generated"
+        echo "✅ Coverage meets 80% threshold"
         echo "   Terminal report above ↑"
         echo "   HTML report: htmlcov/index.html"
         echo "   XML report: coverage.xml"

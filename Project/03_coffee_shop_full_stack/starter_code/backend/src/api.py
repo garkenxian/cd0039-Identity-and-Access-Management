@@ -1,5 +1,6 @@
 import os
 from flask import Flask, request, jsonify, abort
+from werkzeug.exceptions import HTTPException
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
@@ -11,12 +12,7 @@ app = Flask(__name__)
 setup_db(app)
 CORS(app)
 
-'''
-@TODO uncomment the following line to initialize the datbase
-!! NOTE THIS WILL DROP ALL RECORDS AND START YOUR DB FROM SCRATCH
-!! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
-!! Running this funciton will add one
-'''
+# Database initialization (uncomment on first run to populate with test data)
 # db_drop_and_create_all()
 
 # ROUTES
@@ -38,6 +34,8 @@ def get_drinks():
             "success": True,
             "drinks": drinks_short
         }), 200
+    except HTTPException:
+        raise
     except Exception as e:
         abort(422)
 
@@ -65,6 +63,8 @@ def get_drinks_detail(payload):
             "success": True,
             "drinks": drinks_long
         }), 200
+    except HTTPException:
+        raise
     except Exception as e:
         abort(422)
 
@@ -120,6 +120,8 @@ def create_drink(payload):
             "drinks": [drink.long()]
         }), 200
     
+    except HTTPException:
+        raise
     except exc.IntegrityError:
         # Handle duplicate title
         abort(422)
@@ -182,6 +184,8 @@ def update_drink(payload, drink_id):
             "drinks": [drink.long()]
         }), 200
     
+    except HTTPException:
+        raise
     except exc.IntegrityError:
         # Handle duplicate title
         abort(422)
@@ -223,6 +227,8 @@ def delete_drink(payload, drink_id):
             "delete": drink_id
         }), 200
     
+    except HTTPException:
+        raise
     except Exception as e:
         abort(422)
 
