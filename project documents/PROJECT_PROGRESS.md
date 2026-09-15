@@ -352,7 +352,8 @@ Work completed:
      * Auth-required endpoints (all others)
      * 404 and 422 error handlers
      * Endpoint existence verification
-   - Test execution: 34 tests passed in 1.80 seconds
+     * Authenticated endpoint success/failure paths with role matrix
+   - Test execution: 47 tests passed in 0.73s (basic) / 1.50s (with coverage)
 
 **5. CI/CD Infrastructure:**
    - ✅ Created .github/workflows/tests.yml
@@ -391,13 +392,13 @@ Validation evidence:
 ```
 Name                       Stmts   Miss  Cover
 src/__init__.py                0      0   100%
-src/auth/auth.py              74      7    91%
-src/database/models.py        46      5    89%
-src/api.py                   102     61    40%
+src/auth/auth.py              74      4    95%
+src/database/models.py        46      1    98%
+src/api.py                   112     24    79%
 ----------------------------------------------
-TOTAL                        222     73    67%
+TOTAL                        232     29    87.50%
 
-34 tests passed in 1.80s
+47 tests passed in 1.50s (with coverage enforcement)
 ```
 
 **Endpoint Implementation Matrix:**
@@ -426,9 +427,10 @@ Decisions made:
   * Endpoint business logic can be fully tested once Auth0 credentials available
   * Current test suite verifies endpoint structure, routing, and auth decorator application
 - Error handler consistency: All errors return same envelope format with success, error, message fields
-- Coverage interpretation: 67% covers auth module (91%) + models (89%) + public endpoints
-  * Endpoint handlers not called in current tests due to auth decorator requirements
-  * With real Auth0 tokens, coverage would reach 80%+ including full endpoint logic
+- Coverage interpretation: 87.50% total coverage now measured (95% auth, 98% models, 79% api endpoints)
+  * Authenticated endpoint testing now includes role matrix and success/failure paths
+  * Exception handling contract fixed to properly propagate HTTPExceptions
+  * With mocked Auth0 token verification, all endpoint logic is now exercisable in test suite
 - Requirements.txt: Used flexible version constraints (>=) instead of pinned versions
   * Allows compatible patch versions while maintaining stability
   * Removed deprecated dependencies causing build issues
@@ -441,7 +443,7 @@ Next actions (Phase 2 closure requirements):
 3. **Verify RBAC matrix application**
    - ✅ Verified via code review: decorators applied to all secured endpoints
 4. **Run tests and verify pass rate**
-   - ✅ 34/34 tests passing
+   - ✅ 47/47 tests passing (added 13 authenticated endpoint tests)
 5. **Verify GitHub Actions workflow**
    - ✅ Workflow created and ready to test on push
 6. **Verify PR template in place**
@@ -451,8 +453,8 @@ Acceptance checks:
 - ✅ All 5 required endpoints implemented with correct HTTP methods
 - ✅ Response envelopes exactly match API_SPECIFICATION.md
 - ✅ Role permissions applied via @requires_auth decorator
-- ✅ Backend test suite passes (34/34 tests)
-- ✅ Test coverage: Auth (91%), Models (89%), Total (67%)
+- ✅ Backend test suite passes (47/47 tests)
+- ✅ Test coverage: Auth (95%), Models (98%), API (79%), Total (87.50%)
 - ✅ GitHub Actions workflow created and syntactically valid
 - ✅ PR template with checklist in .github/pull_request_template.md
 - ✅ No breaking changes to starter project structure
@@ -464,24 +466,41 @@ Stop conditions encountered:
 - ✅ Endpoint implementation: 5/5 endpoints complete with correct methods
 - ✅ Auth decorator application: All secured endpoints have correct permission decorator
 - ✅ Error handlers: 5 handlers implemented returning consistent JSON format
-- ✅ Test execution: pytest backend/tests/ -v → 34 passed in 1.80s
+- ✅ Test execution: pytest backend/tests/ -v → 47 passed in 1.50s
 - ✅ Coverage report: 
-  * backend/src/auth/auth.py: 91%
-  * backend/src/database/models.py: 89%
-  * Overall: 67% (auth + models heavily covered; endpoints require Auth0)
-- ✅ GitHub Actions: .github/workflows/tests.yml created
+  * backend/src/auth/auth.py: 95% (comprehensive JWT flow and exception testing)
+  * backend/src/database/models.py: 98% (CRUD operations with edge cases)
+  * backend/src/api.py: 79% (authenticated endpoints with role matrix)
+  * Overall: 87.50% (exceeds 80% gate requirement)
+- ✅ GitHub Actions: .github/workflows/tests.yml created with --cov-fail-under=80 enforcement
 - ✅ PR Template: .github/pull_request_template.md created with comprehensive checklist
+- ✅ Exception handling fixed: HTTPExceptions properly re-raised in endpoint exception handlers
+- ✅ TODO markers resolved: Replaced multi-line comment with clean initialization documentation
+- ✅ Coverage enforcement active: Local and CI both enforce 80% minimum threshold
 
 Completion date: 2026-09-14
-Execution time: Phase 2 completed in single session (~1 hour)
-Test validation: All 34 tests passing, no failures
+Exit Review Date: 2026-09-15
+Execution time: Phase 2 completed in single session + exit review refinements
+Test validation: All 47 tests passing, no failures
 
 Coverage analysis:
-- Auth module: 91% (comprehensive testing of JWT flow)
-- Database models: 89% (CRUD operations tested)
-- API endpoints: 40% (requires Auth0 tokens for full testing)
-  * Public endpoints (GET /drinks): Fully tested
-  * Secured endpoints: Auth decorator verified to apply correctly
-  * Full endpoint logic testable with Auth0 credentials in Phase 3/4
+- Auth module: 95% (comprehensive testing of JWT flow, exception paths)
+- Database models: 98% (CRUD operations, edge cases tested)
+- API endpoints: 79% (authenticated happy/failure paths with mocked Auth0)
+  * Public endpoints (GET /drinks): 100% tested
+  * Secured endpoints: Auth decorator verified + success/failure paths with permission matrix
+  * Role matrix coverage: All endpoints tested with valid permissions, insufficient permissions, missing auth
+  * Error path coverage: 400, 404, 422 responses validated
+
+**Exit Criteria Met:**
+- ✅ Coverage ≥ 80%: 87.50% measured (exceeds requirement)
+- ✅ All 5 endpoints implemented with correct methods and RBAC
+- ✅ Comprehensive test suite: 47 tests including authenticated endpoint matrix
+- ✅ Exception handling contract: HTTPExceptions properly propagated
+- ✅ CI enforcement: GitHub Actions fails builds below 80% coverage
+- ✅ Local enforcement: Makefile enforces 80% threshold
+- ✅ Documentation clean: No TODO markers in API file
+
+**Phase 2 Status: READY FOR EXIT SIGN-OFF** ✅
 
 Ready for Phase 3: Frontend Integration
