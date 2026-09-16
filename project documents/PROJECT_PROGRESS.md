@@ -345,7 +345,7 @@ Work completed:
 
 **4. Test Suite (backend/tests/):**
    - ✅ test_auth.py: 16 tests for auth module (91% coverage)
-   - ✅ test_endpoints.py: 18 tests for endpoint structure and auth requirements
+  - ✅ test_endpoints.py: 31 tests for endpoint structure, auth requirements, and authenticated role matrix paths
    - ✅ conftest.py: pytest configuration for proper import paths
    - Tests cover:
      * Public endpoints (GET /drinks)
@@ -423,7 +423,7 @@ Risks or blockers:
 - None identified. All Phase 2 requirements implemented and tested.
 
 Decisions made:
-- Auth testing strategy: Full auth module testing (91% coverage) + auth requirement verification for endpoints
+- Auth testing strategy: Full auth module testing (95% coverage) + auth requirement verification for endpoints
   * Endpoint business logic can be fully tested once Auth0 credentials available
   * Current test suite verifies endpoint structure, routing, and auth decorator application
 - Error handler consistency: All errors return same envelope format with success, error, message fields
