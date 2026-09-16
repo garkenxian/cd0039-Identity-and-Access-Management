@@ -1,19 +1,20 @@
-name: Backend Tests
+name: Tests (Backend + Frontend)
 
 on:
   push:
     branches: [ main ]
     paths:
-      - 'Project/03_coffee_shop_full_stack/starter_code/backend/**'
+      - 'Project/03_coffee_shop_full_stack/starter_code/**'
       - '.github/workflows/tests.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'Project/03_coffee_shop_full_stack/starter_code/backend/**'
+      - 'Project/03_coffee_shop_full_stack/starter_code/**'
 
 jobs:
-  test:
+  backend-tests:
     runs-on: ubuntu-latest
+    name: Backend Tests
 
     steps:
     - uses: actions/checkout@v3
@@ -37,25 +38,69 @@ jobs:
       run: |
         cd Project/03_coffee_shop_full_stack/starter_code/backend
         coverage report
-        echo "✅ Coverage meets 80% threshold"
+        echo "✅ Backend coverage meets 80% threshold"
         echo "   Terminal report above ↑"
         echo "   HTML report: htmlcov/index.html"
         echo "   XML report: coverage.xml"
 
-    - name: Upload coverage reports
+    - name: Upload backend coverage reports
       uses: codecov/codecov-action@v3
       if: always()
       with:
         files: ./Project/03_coffee_shop_full_stack/starter_code/backend/coverage.xml
-        flags: unittests
-        name: codecov-umbrella
+        flags: backend-tests
+        name: backend-coverage
         fail_ci_if_error: false
 
-    - name: Archive test results
+    - name: Archive backend test results
       if: always()
       uses: actions/upload-artifact@v3
       with:
-        name: test-results
+        name: backend-test-results
         path: |
           Project/03_coffee_shop_full_stack/starter_code/backend/htmlcov/
           Project/03_coffee_shop_full_stack/starter_code/backend/.coverage
+
+  frontend-tests:
+    runs-on: ubuntu-latest
+    name: Frontend Tests
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js 14
+      uses: actions/setup-node@v3
+      with:
+        node-version: 14
+
+    - name: Install dependencies
+      run: |
+        cd Project/03_coffee_shop_full_stack/starter_code/frontend
+        npm install
+
+    - name: Run tests with coverage
+      run: |
+        cd Project/03_coffee_shop_full_stack/starter_code/frontend
+        NODE_OPTIONS=--openssl-legacy-provider npm test -- --no-watch --code-coverage --browsers=ChromeHeadless
+
+    - name: Report coverage (target: 80%)
+      if: always()
+      run: |
+        echo "✅ Frontend tests completed"
+        echo "   Coverage report: Project/03_coffee_shop_full_stack/starter_code/frontend/coverage/"
+
+    - name: Upload frontend coverage reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        directory: ./Project/03_coffee_shop_full_stack/starter_code/frontend/coverage/
+        flags: frontend-tests
+        name: frontend-coverage
+        fail_ci_if_error: false
+
+    - name: Archive frontend test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-test-results
+        path: Project/03_coffee_shop_full_stack/starter_code/frontend/coverage/

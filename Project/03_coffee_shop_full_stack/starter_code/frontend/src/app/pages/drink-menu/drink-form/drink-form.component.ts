@@ -33,8 +33,14 @@ export class DrinkFormComponent implements OnInit {
     return index;
   }
 
-  addIngredient(i: number = 0) {
-    this.drink.recipe.splice(i + 1, 0, {name: '', color: 'white', parts: 1});
+  addIngredient(i?: number) {
+    if (i !== undefined) {
+      // If index is specified, add after that index
+      this.drink.recipe.splice(i + 1, 0, {name: '', color: 'white', parts: 1});
+    } else {
+      // Otherwise, add at the end
+      this.drink.recipe.push({name: '', color: 'white', parts: 1});
+    }
   }
 
   removeIngredient(i: number) {
@@ -46,8 +52,13 @@ export class DrinkFormComponent implements OnInit {
   }
 
   saveClicked() {
-    this.drinkService.saveDrink(this.drink);
-    this.closeModal();
+    try {
+      this.drinkService.saveDrink(this.drink);
+    } catch (error) {
+      console.error('Error saving drink', error);
+    } finally {
+      this.closeModal();
+    }
   }
 
   deleteClicked() {

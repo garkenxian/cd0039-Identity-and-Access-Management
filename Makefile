@@ -1,6 +1,6 @@
 .PHONY: help install install-backend install-frontend \
 	run run-backend run-frontend \
-	test test-backend test-backend-coverage test-frontend \
+	test test-coverage test-backend test-backend-coverage test-frontend test-frontend-coverage \
 	auth0-init auth0-init-help clean clean-backend clean-frontend \
 	lint lint-backend lint-frontend format format-backend format-frontend setup
 
@@ -33,9 +33,11 @@ help: ## Show this help message
 	echo   run-frontend               Run Ionic frontend
 	echo TEST
 	echo   test                       Run backend + frontend tests
+	echo   test-coverage              Run backend + frontend tests with coverage
 	echo   test-backend               Run backend tests
 	echo   test-backend-coverage      Run backend tests with coverage
 	echo   test-frontend              Run frontend tests
+	echo   test-frontend-coverage     Run frontend tests with coverage
 	echo LINT/FORMAT
 	echo   lint                       Run backend + frontend lint
 	echo   format                     Run backend + frontend formatting
@@ -78,7 +80,7 @@ run-frontend: ## Run Ionic frontend (port 8100)
 
 test: test-backend test-frontend ## Run all tests (backend + frontend)
 
-test-coverage: test-backend-coverage test-frontend
+test-coverage: test-backend-coverage test-frontend-coverage ## Run backend + frontend tests with coverage
 
 test-backend: ## Run backend unit tests
 	echo [Backend] Running pytest tests...
@@ -93,10 +95,14 @@ test-backend-coverage: ## Run backend tests with coverage report
 
 test-frontend: ## Run frontend tests (Karma)
 	echo [Frontend] Running Karma tests...
-	cd /d "$(FRONTEND_DIR)" && cmd /C "set NODE_OPTIONS=$(NODE_OPTIONS) && npm test -- --watch=false --browsers=ChromeHeadless"
+	cd /d "$(FRONTEND_DIR)" && cmd /C "set NODE_OPTIONS=$(NODE_OPTIONS) && npm test -- --no-watch --browsers=ChromeHeadless"
 	echo Frontend tests passed
 
-test-frontend-converage: test-frontend ## will put coverage report here when its ready
+test-frontend-coverage: ## Run frontend tests with coverage report
+	echo [Frontend] Running Karma tests with coverage (minimum 80% required)...
+	cd /d "$(FRONTEND_DIR)" && cmd /C "set NODE_OPTIONS=$(NODE_OPTIONS) && npm test -- --no-watch --code-coverage --browsers=ChromeHeadless"
+	echo [Frontend] Coverage report created in: Project\03_coffee_shop_full_stack\starter_code\frontend\coverage\
+	echo Frontend tests with coverage completed
 
 lint: lint-backend lint-frontend ## Run linters (backend + frontend)
 

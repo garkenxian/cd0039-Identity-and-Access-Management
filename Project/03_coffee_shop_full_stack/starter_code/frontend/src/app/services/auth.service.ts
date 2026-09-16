@@ -74,7 +74,7 @@ export class AuthService {
     this.set_jwt();
   }
 
-  can(permission: string) {
-    return this.payload && this.payload.permissions && this.payload.permissions.length && this.payload.permissions.indexOf(permission) >= 0;
+  can(permission: string): boolean {
+    return !!(this.payload && this.payload.permissions && this.payload.permissions.length && this.payload.permissions.indexOf(permission) >= 0);
   }
 }
