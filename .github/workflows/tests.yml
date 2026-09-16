@@ -1,0 +1,61 @@
+name: Backend Tests
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Project/03_coffee_shop_full_stack/starter_code/backend/**'
+      - '.github/workflows/tests.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'Project/03_coffee_shop_full_stack/starter_code/backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r Project/03_coffee_shop_full_stack/starter_code/backend/requirements.txt
+
+    - name: Run tests with coverage
+      run: |
+        cd Project/03_coffee_shop_full_stack/starter_code/backend
+        pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing --cov-report=html --cov-fail-under=80
+
+    - name: Report coverage (target: 80%)
+      run: |
+        cd Project/03_coffee_shop_full_stack/starter_code/backend
+        coverage report
+        echo "✅ Coverage meets 80% threshold"
+        echo "   Terminal report above ↑"
+        echo "   HTML report: htmlcov/index.html"
+        echo "   XML report: coverage.xml"
+
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      if: always()
+      with:
+        files: ./Project/03_coffee_shop_full_stack/starter_code/backend/coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+
+    - name: Archive test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: |
+          Project/03_coffee_shop_full_stack/starter_code/backend/htmlcov/
+          Project/03_coffee_shop_full_stack/starter_code/backend/.coverage

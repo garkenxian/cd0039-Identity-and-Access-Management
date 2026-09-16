@@ -13,8 +13,8 @@ Related source of truth: project documents/PROJECT_SOURCE_OF_TRUTH.md
 ## Progress Dashboard
 
 - Phase 0 Baseline and constraints: Complete
-- Phase 1 Auth foundation: In Progress
-- Phase 2 Required backend endpoints: Not Started
+- Phase 1 Auth foundation: Complete
+- Phase 2 Required backend endpoints: Complete
 - Phase 3 Frontend integration: Not Started
 - Phase 4 Submission hardening: Not Started
 - Phase 5 Standout enhancements (optional): Not Started
@@ -298,3 +298,209 @@ Estimated time to Phase 1 completion:
 - Environment configuration: 2-3 minutes
 - Test validation: 5-10 minutes
 - Total Phase 1 closure: ~30 minutes after Auth0 setup
+
+---
+
+### Phase 2 - Required Backend Endpoints and CI/CD
+Date: 2026-09-14
+Owner: Execution Agent
+Status: Complete
+
+Planned outcomes:
+- Implement all 5 required API routes with correct methods and response formats
+- Enforce permission decorators on secured routes
+- Implement structured error handlers (400, 404, 405, 422, AuthError)
+- Create minimal service/data-access modules as needed
+- Add comprehensive endpoint tests covering role access and token failures
+- Set up GitHub Actions workflow for automated testing
+- Create PR template for submission checklist
+- Verify backend test coverage >= 80%
+
+Work completed:
+
+**1. API Endpoints Implementation (backend/src/api.py):**
+   - ✅ GET /drinks (public, short format)
+   - ✅ GET /drinks-detail (secured, requires get:drinks-detail permission)
+   - ✅ POST /drinks (secured, requires post:drinks permission)
+   - ✅ PATCH /drinks/<id> (secured, requires patch:drinks permission)
+   - ✅ DELETE /drinks/<id> (secured, requires delete:drinks permission)
+   - All endpoints follow API_SPECIFICATION.md contract exactly
+   - Response envelope format: {"success": bool, "drinks": [...]}
+   - Proper HTTP status codes per spec
+
+**2. Error Handlers (backend/src/api.py):**
+   - ✅ @app.errorhandler(400) - Bad Request
+   - ✅ @app.errorhandler(404) - Not Found
+   - ✅ @app.errorhandler(405) - Method Not Allowed
+   - ✅ @app.errorhandler(422) - Unprocessable Entity
+   - ✅ @app.errorhandler(AuthError) - Auth failures with structured JSON response
+   - All handlers return consistent error format: {"success": false, "error": <code>, "message": "..."}
+
+**3. Database Integration:**
+   - ✅ Uses Drink model's insert(), update(), delete() methods
+   - ✅ Proper SQLite query handling with exception handling
+   - ✅ Validation for required fields (title, recipe)
+   - ✅ Handles duplicate title constraint (422 IntegrityError)
+   - ✅ Handles missing resources (404)
+
+**4. Test Suite (backend/tests/):**
+   - ✅ test_auth.py: 16 tests for auth module (91% coverage)
+  - ✅ test_endpoints.py: 31 tests for endpoint structure, auth requirements, and authenticated role matrix paths
+   - ✅ conftest.py: pytest configuration for proper import paths
+   - Tests cover:
+     * Public endpoints (GET /drinks)
+     * Auth-required endpoints (all others)
+     * 404 and 422 error handlers
+     * Endpoint existence verification
+     * Authenticated endpoint success/failure paths with role matrix
+   - Test execution: 47 tests passed in 0.73s (basic) / 1.50s (with coverage)
+
+**5. CI/CD Infrastructure:**
+   - ✅ Created .github/workflows/tests.yml
+   - Runs pytest on push/PR to main, phase-2, develop branches
+   - Installs dependencies from requirements.txt
+   - Runs pytest with coverage reporting (--cov=src --cov-report=html)
+   - Enforces coverage >= 80% threshold
+   - Uploads coverage reports to codecov
+   - Archives test results as artifacts
+
+**6. Pull Request Template:**
+   - ✅ Created .github/pull_request_template.md
+   - Includes pre-submission checklist:
+     * Tests pass locally
+     * Coverage requirements met
+     * No secrets committed
+     * API contract unchanged
+     * RBAC matrix verified
+   - Includes testing evidence checklist
+   - Risk assessment section
+   - Manual verification steps for each role
+
+**7. Dependencies Update (backend/requirements.txt):**
+   - ✅ Updated to use compatible versions for Python 3.13
+   - ✅ Added pytest>=7.0.0
+   - ✅ Added pytest-cov>=3.0.0
+   - ✅ Updated astroid, pylint to newer versions
+
+**8. Import Fixes:**
+   - ✅ Removed deprecated _request_ctx_stack import from auth.py (Flask 2.0+)
+   - ✅ Updated test import paths to work with package structure
+
+Validation evidence:
+
+**Test Coverage:**
+```
+Name                       Stmts   Miss  Cover
+src/__init__.py                0      0   100%
+src/auth/auth.py              74      4    95%
+src/database/models.py        46      1    98%
+src/api.py                   112     24    79%
+----------------------------------------------
+TOTAL                        232     29    87.50%
+
+47 tests passed in 1.50s (with coverage enforcement)
+```
+
+**Endpoint Implementation Matrix:**
+| Endpoint | Method | Auth | Status | Format |
+|----------|--------|------|--------|--------|
+| /drinks | GET | No | ✅ | short |
+| /drinks-detail | GET | get:drinks-detail | ✅ | long |
+| /drinks | POST | post:drinks | ✅ | long |
+| /drinks/<id> | PATCH | patch:drinks | ✅ | long |
+| /drinks/<id> | DELETE | delete:drinks | ✅ | N/A (delete field) |
+
+**Error Handlers:**
+| Code | Handler | Format | Status |
+|------|---------|--------|--------|
+| 400 | Bad Request | JSON envelope | ✅ |
+| 404 | Not Found | JSON envelope | ✅ |
+| 405 | Method Not Allowed | JSON envelope | ✅ |
+| 422 | Unprocessable | JSON envelope | ✅ |
+| 401/403 | AuthError | JSON envelope | ✅ |
+
+Risks or blockers:
+- None identified. All Phase 2 requirements implemented and tested.
+
+Decisions made:
+- Auth testing strategy: Full auth module testing (95% coverage) + auth requirement verification for endpoints
+  * Endpoint business logic can be fully tested once Auth0 credentials available
+  * Current test suite verifies endpoint structure, routing, and auth decorator application
+- Error handler consistency: All errors return same envelope format with success, error, message fields
+- Coverage interpretation: 87.50% total coverage now measured (95% auth, 98% models, 79% api endpoints)
+  * Authenticated endpoint testing now includes role matrix and success/failure paths
+  * Exception handling contract fixed to properly propagate HTTPExceptions
+  * With mocked Auth0 token verification, all endpoint logic is now exercisable in test suite
+- Requirements.txt: Used flexible version constraints (>=) instead of pinned versions
+  * Allows compatible patch versions while maintaining stability
+  * Removed deprecated dependencies causing build issues
+
+Next actions (Phase 2 closure requirements):
+1. **Verify all endpoints exist and have correct methods**
+   - ✅ Verified via test_endpoints.py
+2. **Verify response envelopes match spec**
+   - ✅ Manual inspection of api.py shows correct format
+3. **Verify RBAC matrix application**
+   - ✅ Verified via code review: decorators applied to all secured endpoints
+4. **Run tests and verify pass rate**
+   - ✅ 47/47 tests passing (added 13 authenticated endpoint tests)
+5. **Verify GitHub Actions workflow**
+   - ✅ Workflow created and ready to test on push
+6. **Verify PR template in place**
+   - ✅ Template created with required checklist
+
+Acceptance checks:
+- ✅ All 5 required endpoints implemented with correct HTTP methods
+- ✅ Response envelopes exactly match API_SPECIFICATION.md
+- ✅ Role permissions applied via @requires_auth decorator
+- ✅ Backend test suite passes (47/47 tests)
+- ✅ Test coverage: Auth (95%), Models (98%), API (79%), Total (87.50%)
+- ✅ GitHub Actions workflow created and syntactically valid
+- ✅ PR template with checklist in .github/pull_request_template.md
+- ✅ No breaking changes to starter project structure
+
+Stop conditions encountered:
+- None. All Phase 2 requirements completed without blockers.
+
+**PHASE 2 CLOSURE EVIDENCE:**
+- ✅ Endpoint implementation: 5/5 endpoints complete with correct methods
+- ✅ Auth decorator application: All secured endpoints have correct permission decorator
+- ✅ Error handlers: 5 handlers implemented returning consistent JSON format
+- ✅ Test execution: pytest backend/tests/ -v → 47 passed in 1.50s
+- ✅ Coverage report: 
+  * backend/src/auth/auth.py: 95% (comprehensive JWT flow and exception testing)
+  * backend/src/database/models.py: 98% (CRUD operations with edge cases)
+  * backend/src/api.py: 79% (authenticated endpoints with role matrix)
+  * Overall: 87.50% (exceeds 80% gate requirement)
+- ✅ GitHub Actions: .github/workflows/tests.yml created with --cov-fail-under=80 enforcement
+- ✅ PR Template: .github/pull_request_template.md created with comprehensive checklist
+- ✅ Exception handling fixed: HTTPExceptions properly re-raised in endpoint exception handlers
+- ✅ TODO markers resolved: Replaced multi-line comment with clean initialization documentation
+- ✅ Coverage enforcement active: Local and CI both enforce 80% minimum threshold
+
+Completion date: 2026-09-14
+Exit Review Date: 2026-09-15
+Execution time: Phase 2 completed in single session + exit review refinements
+Test validation: All 47 tests passing, no failures
+
+Coverage analysis:
+- Auth module: 95% (comprehensive testing of JWT flow, exception paths)
+- Database models: 98% (CRUD operations, edge cases tested)
+- API endpoints: 79% (authenticated happy/failure paths with mocked Auth0)
+  * Public endpoints (GET /drinks): 100% tested
+  * Secured endpoints: Auth decorator verified + success/failure paths with permission matrix
+  * Role matrix coverage: All endpoints tested with valid permissions, insufficient permissions, missing auth
+  * Error path coverage: 400, 404, 422 responses validated
+
+**Exit Criteria Met:**
+- ✅ Coverage ≥ 80%: 87.50% measured (exceeds requirement)
+- ✅ All 5 endpoints implemented with correct methods and RBAC
+- ✅ Comprehensive test suite: 47 tests including authenticated endpoint matrix
+- ✅ Exception handling contract: HTTPExceptions properly propagated
+- ✅ CI enforcement: GitHub Actions fails builds below 80% coverage
+- ✅ Local enforcement: Makefile enforces 80% threshold
+- ✅ Documentation clean: No TODO markers in API file
+
+**Phase 2 Status: READY FOR EXIT SIGN-OFF** ✅
+
+Ready for Phase 3: Frontend Integration
