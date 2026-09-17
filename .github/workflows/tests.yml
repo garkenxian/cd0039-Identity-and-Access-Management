@@ -2,12 +2,12 @@ name: Tests (Backend + Frontend)
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'Project/03_coffee_shop_full_stack/starter_code/**'
       - '.github/workflows/tests.yml'
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
     paths:
       - 'Project/03_coffee_shop_full_stack/starter_code/**'
 
