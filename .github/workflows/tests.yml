@@ -34,7 +34,7 @@ jobs:
         cd Project/03_coffee_shop_full_stack/starter_code/backend
         pytest tests/ --cov=src --cov-report=xml --cov-report=term-missing --cov-report=html --cov-fail-under=80
 
-    - name: Report coverage (target: 80%)
+    - name: "Report coverage (target: 80%)"
       run: |
         cd Project/03_coffee_shop_full_stack/starter_code/backend
         coverage report
@@ -83,7 +83,7 @@ jobs:
         cd Project/03_coffee_shop_full_stack/starter_code/frontend
         NODE_OPTIONS=--openssl-legacy-provider npm test -- --no-watch --code-coverage --browsers=ChromeHeadless
 
-    - name: Report coverage (target: 80%)
+    - name: "Report coverage (target: 80%)"
       if: always()
       run: |
         echo "✅ Frontend tests completed"
