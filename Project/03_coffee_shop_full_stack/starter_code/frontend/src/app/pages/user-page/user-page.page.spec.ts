@@ -35,7 +35,7 @@ describe('UserPagePage', () => {
 
   describe('Constructor - Login Link', () => {
     it('should build login link with callback path', () => {
-      expect(authServiceSpy.build_login_link).toHaveBeenCalledWith('/tabs/user-page');
+      expect(authServiceSpy.build_login_link).toHaveBeenCalledWith('/callback');
     });
 
     it('should store login URL from auth service', () => {
@@ -68,12 +68,12 @@ describe('UserPagePage', () => {
 
   describe('Login Callback Path', () => {
     it('should redirect back to user-page after login', () => {
-      expect(authServiceSpy.build_login_link).toHaveBeenCalledWith('/tabs/user-page');
+      expect(authServiceSpy.build_login_link).toHaveBeenCalledWith('/callback');
       
       // Verify that either:
       // 1. The returned login URL contains redirect_uri, OR
       // 2. The build_login_link was called with the correct callback path
-      const wasCalledWithCorrectPath = authServiceSpy.build_login_link.calls.argsFor(0)[0] === '/tabs/user-page';
+      const wasCalledWithCorrectPath = authServiceSpy.build_login_link.calls.argsFor(0)[0] === '/callback';
       expect(wasCalledWithCorrectPath).toBe(true);
     });
   });

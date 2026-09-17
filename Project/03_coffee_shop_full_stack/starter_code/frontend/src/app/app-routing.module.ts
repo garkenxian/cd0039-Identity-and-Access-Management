@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 const routes: Routes = [
+  { path: 'callback', redirectTo: 'tabs/user-page', pathMatch: 'full' },
   { path: '', loadChildren: './pages/tabs/tabs.module#TabsPageModule' },
 ];
 @NgModule({

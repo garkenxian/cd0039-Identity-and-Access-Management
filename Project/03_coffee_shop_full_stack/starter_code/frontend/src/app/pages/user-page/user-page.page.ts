@@ -10,7 +10,8 @@ export class UserPagePage implements OnInit {
   loginURL: string;
 
   constructor(public auth: AuthService) {
-    this.loginURL = auth.build_login_link('/tabs/user-page');
+    // Use an Auth0-allowed callback route and redirect from there in app routing.
+    this.loginURL = auth.build_login_link('/callback');
   }
 
   ngOnInit() {
