@@ -96,12 +96,16 @@ export class DrinksService {
       .subscribe((res: any) => {
         this.drinksToItems(res.drinks);
         console.log(res);
+      }, (error: any) => {
+        console.error('Error fetching drinks', error);
       });
     } else {
       this.http.get(this.url + '/drinks', this.getHeaders())
       .subscribe((res: any) => {
         this.drinksToItems(res.drinks);
         console.log(res);
+      }, (error: any) => {
+        console.error('Error fetching drinks', error);
       });
     }
 
@@ -114,6 +118,8 @@ export class DrinksService {
         if (res.success) {
           this.drinksToItems(res.drinks);
         }
+      }, (error: any) => {
+        console.error('Error updating drink', error);
       });
     } else { // insert
       this.http.post(this.url + '/drinks', drink, this.getHeaders())
@@ -121,6 +127,8 @@ export class DrinksService {
         if (res.success) {
           this.drinksToItems(res.drinks);
         }
+      }, (error: any) => {
+        console.error('Error creating drink', error);
       });
     }
 
@@ -131,6 +139,8 @@ export class DrinksService {
     this.http.delete(this.url + '/drinks/' + drink.id, this.getHeaders())
     .subscribe( (res: any) => {
 
+    }, (error: any) => {
+      console.error('Error deleting drink', error);
     });
   }
 

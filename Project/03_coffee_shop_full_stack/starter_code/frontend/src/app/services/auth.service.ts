@@ -22,7 +22,7 @@ export class AuthService {
 
   build_login_link(callbackPath = '') {
     let link = 'https://';
-    link += this.url + '.auth0.com';
+    link += this.url;
     link += '/authorize?';
     link += 'audience=' + this.audience + '&';
     link += 'response_type=token&';
@@ -74,7 +74,7 @@ export class AuthService {
     this.set_jwt();
   }
 
-  can(permission: string) {
-    return this.payload && this.payload.permissions && this.payload.permissions.length && this.payload.permissions.indexOf(permission) >= 0;
+  can(permission: string): boolean {
+    return !!(this.payload && this.payload.permissions && this.payload.permissions.length && this.payload.permissions.indexOf(permission) >= 0);
   }
 }
