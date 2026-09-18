@@ -8,6 +8,15 @@ The remote server returned an error: (401) Unauthorized.
 
 This happens when Auth0 doesn't allow the "Resource Owner Password" grant type.
 
+## ✅ Your Credentials Are Correct
+
+Your `.env` file has the right credentials:
+- **Application:** Coffee Shop Setup (the one that requests tokens) ✓
+- **Client ID:** `LhgYzneJPGKmuasdbBAQaMQt6MCEwYar` ✓
+- **API Audience:** `coffee-shop-api` ✓
+
+The 401 error is **NOT** a credential problem. It's just that Auth0 needs to be told that this application is allowed to use the password grant type.
+
 ## Solution: Enable Password Grant (5 minutes)
 
 ### Step 1: Go to Auth0 Dashboard
