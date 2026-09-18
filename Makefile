@@ -2,7 +2,7 @@
 	run run-backend run-frontend \
 	test test-coverage test-backend test-backend-coverage test-frontend test-frontend-coverage \
 	db-init db-reset db-seed \
-	auth0-init auth0-init-help clean clean-backend clean-frontend \
+	auth0-init auth0-init-help token-barista token-manager clean clean-backend clean-frontend \
 	lint lint-backend lint-frontend format format-backend format-frontend setup
 
 SHELL := cmd.exe
@@ -49,6 +49,8 @@ help: ## Show this help message
 	echo AUTH0
 	echo   auth0-init-help            Show Auth0 setup instructions
 	echo   auth0-init                 Initialize Auth0 resources
+	echo   token-barista              Generate barista JWT token for testing
+	echo   token-manager              Generate manager JWT token for testing
 	echo CLEAN
 	echo   clean                      Remove generated backend/frontend files
 
@@ -162,6 +164,14 @@ auth0-init-help: ## Show Auth0 setup help
 	echo Step 3: Run command:
 	echo   make auth0-init AUTH0_DOMAIN=your-domain.auth0.com AUTH0_CLIENT_ID=your_client_id AUTH0_CLIENT_SECRET=your_client_secret
 	echo Step 4: Enable 'Add Permissions in Access Token' in Auth0 API settings
+
+token-barista: ## Generate barista JWT token for Postman testing
+	echo [Token] Generating barista JWT token...
+	cd /d "$(HELPERS_DIR)" && $(PYTHON) generate_token.py barista
+
+token-manager: ## Generate manager JWT token for Postman testing
+	echo [Token] Generating manager JWT token...
+	cd /d "$(HELPERS_DIR)" && $(PYTHON) generate_token.py manager
 
 clean: clean-backend clean-frontend ## Clean up all generated files
 
