@@ -153,12 +153,24 @@ def verify_decode_jwt(token):
         dict: Decoded JWT payload
     """
     # Get the kid from the token header
-    unverified_header = jwt.get_unverified_header(token)
+    try:
+        unverified_header = jwt.get_unverified_header(token)
+    except ValueError as ve:
+        # Malformed token - doesn't have 3 parts separated by dots
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Token is malformed. Expected JWT format with 3 parts separated by dots (header.payload.signature).'
+        }, 401)
+    except Exception as e:
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': f'Token parsing failed: {str(e)}'
+        }, 401)
     
     if 'kid' not in unverified_header:
         raise AuthError({
             'code': 'invalid_header',
-            'description': 'Authorization malformed.'
+            'description': 'Token header is missing "kid" (key ID). Expected Auth0-issued JWT.'
         }, 401)
     
     # Fetch JWKS from Auth0
@@ -211,7 +223,7 @@ def verify_decode_jwt(token):
     except Exception as e:
         raise AuthError({
             'code': 'invalid_signature',
-            'description': 'Unable to parse authentication token.'
+            'description': f'Token verification failed: {str(e)}'
         }, 401)
 
 '''
