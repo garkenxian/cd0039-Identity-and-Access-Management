@@ -1,0 +1,106 @@
+# Test Token Generation Guide
+
+## Quick Start
+
+### Test User Credentials
+- **Barista:** `barista@test.local` / `TempPass123!Barista`
+- **Manager:** `manager@test.local` / `TempPass123!Manager`
+
+## Getting JWT Tokens
+
+### Option 1: Auth0 Dashboard (Easiest)
+1. Go to [Auth0 Dashboard](https://manage.auth0.com/dashboard)
+2. Select **Applications** from the left menu
+3. Find your application (e.g., "Coffee Shop Setup")
+4. Click the **Test** tab
+5. Use the test endpoints to get a token
+
+### Option 2: Postman (Recommended for API Testing)
+1. Create a new request in Postman
+2. Click **Authorization** tab
+3. Select **OAuth 2.0** from the dropdown
+4. Fill in:
+   - **Grant Type:** Authorization Code Flow (or Implicit for testing)
+   - **Callback URL:** `http://localhost:3000/callback`
+   - **Auth URL:** `https://dev-53bey634viqgnyzc.us.auth0.com/authorize`
+   - **Access Token URL:** `https://dev-53bey634viqgnyzc.us.auth0.com/oauth/token`
+   - **Client ID:** `LhgYzneJPGKmuasdbBAQaMQt6MCEwYar`
+   - **Audience:** `coffee-shop-api`
+   - **Realm:** `Username-Password-Authentication`
+5. Click **Get New Access Token**
+6. Log in with barista@test.local or manager@test.local
+7. Postman will automatically add the token to your request header
+
+### Option 3: cURL Command
+```bash
+curl -X POST https://dev-53bey634viqgnyzc.us.auth0.com/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "password",
+    "username": "barista@test.local",
+    "password": "TempPass123!Barista",
+    "audience": "coffee-shop-api",
+    "client_id": "LhgYzneJPGKmuasdbBAQaMQt6MCEwYar",
+    "realm": "Username-Password-Authentication"
+  }'
+```
+
+For manager:
+```bash
+curl -X POST https://dev-53bey634viqgnyzc.us.auth0.com/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "password",
+    "username": "manager@test.local",
+    "password": "TempPass123!Manager",
+    "audience": "coffee-shop-api",
+    "client_id": "LhgYzneJPGKmuasdbBAQaMQt6MCEwYar",
+    "realm": "Username-Password-Authentication"
+  }'
+```
+
+## Using the Token
+
+### In Postman
+1. Copy the `access_token` from the response
+2. In your API request, go to **Headers** tab
+3. Add a new header:
+   - **Key:** `Authorization`
+   - **Value:** `Bearer <paste_token_here>`
+
+### In cURL
+```bash
+curl -H "Authorization: Bearer <access_token>" \
+  http://127.0.0.1:5000/drinks-detail
+```
+
+### In Python
+```python
+headers = {
+    "Authorization": f"Bearer {access_token}"
+}
+response = requests.get("http://127.0.0.1:5000/drinks-detail", headers=headers)
+```
+
+## Token Permissions
+
+**Barista Role:**
+- `get:drinks` - View drink list
+- `get:drinks-detail` - View drink recipes
+
+**Manager Role:**
+- `get:drinks` - View drink list
+- `get:drinks-detail` - View drink recipes
+- `post:drinks` - Create new drinks
+- `patch:drinks` - Update drinks
+- `delete:drinks` - Delete drinks
+
+## Help
+
+### Token not working?
+1. Make sure the token hasn't expired (default: 24 hours)
+2. Verify you're using the correct Auth0 domain: `dev-53bey634viqgnyzc.us.auth0.com`
+3. Check that the `Authorization` header format is: `Bearer <token>`
+
+### See info about your token
+Visit [jwt.io](https://jwt.io) and paste your token to decode it and verify the claims and permissions.
