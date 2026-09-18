@@ -1,5 +1,18 @@
 # Test Token Generation Guide
 
+## ⚠️ QUICK FIX: If Getting 401 Error
+
+You'll get `401 Unauthorized` if Auth0 password grant isn't enabled.
+
+**Follow this 5-minute setup:** [SETUP_PASSWORD_GRANT.md](SETUP_PASSWORD_GRANT.md)
+
+After that, this will work:
+```powershell
+make token-barista
+```
+
+---
+
 ## Quick Start
 
 ### Test User Credentials
@@ -22,22 +35,13 @@ powershell -NoProfile -ExecutionPolicy Bypass -File get_token.ps1 -Role barista
 powershell -NoProfile -ExecutionPolicy Bypass -File get_token.ps1 -Role manager
 ```
 
-### Enabling Password Grant in Auth0 (If 401 Error)
+---
 
-If you get `401 Unauthorized`, you need to enable the password grant in Auth0:
+## Getting 401 Error?
 
-1. **Go to Auth0 Dashboard** → Applications → Select your app
-2. **Click Settings** tab
-3. **Scroll down to "Grant Types"**
-4. **Check the box for "Resource Owner Password"**
-5. **Scroll down to "Connections"**
-6. **Enable "Username-Password-Authentication"** connection
-7. **Save**
+The CLI automation requires Auth0 password grant to be enabled. See [SETUP_PASSWORD_GRANT.md](SETUP_PASSWORD_GRANT.md) for a quick 5-minute setup guide.
 
-Then try again:
-```powershell
-make token-barista
-```
+---
 
 ## Getting JWT Tokens (Alternative Methods)
 
