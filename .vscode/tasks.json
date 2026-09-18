@@ -4,24 +4,22 @@
         {
             "label": "install-backend",
             "type": "shell",
-            "command": "${workspaceFolder}/Project/03_coffee_shop_full_stack/starter_code/backend/venv/Scripts/python.exe",
+            "command": "python",
             "args": [
                 "-m",
                 "pip",
                 "install",
+                "-q",
                 "-r",
                 "requirements.txt"
             ],
             "cwd": "${workspaceFolder}/Project/03_coffee_shop_full_stack/starter_code/backend",
             "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": false
+                "echo": false,
+                "reveal": "silent"
             },
             "problemMatcher": [],
-            "runOptions": {
-                "runOn": "folderOpen"
-            }
+            "isBackground": false
         }
     ]
 }

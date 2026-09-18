@@ -6,25 +6,23 @@
     "configurations": [
         {
             "name": "Flask Backend (Debug)",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "flask",
-            "pythonPath": "${workspaceFolder}/Project/03_coffee_shop_full_stack/starter_code/backend/venv/Scripts/python.exe",
             "args": [
                 "run",
-                "--reload",
-                "--debugger"
+                "--reload"
             ],
             "jinja": true,
             "justMyCode": true,
             "env": {
                 "FLASK_APP": "src/api.py",
                 "FLASK_ENV": "development",
-                "PYTHONUNBUFFERED": "1"
+                "PYTHONUNBUFFERED": "1",
+                "PATH": "${workspaceFolder}/Project/03_coffee_shop_full_stack/starter_code/backend/venv/Scripts;${env:PATH}"
             },
             "cwd": "${workspaceFolder}/Project/03_coffee_shop_full_stack/starter_code/backend",
-            "console": "integratedTerminal",
-            "preLaunchTask": "install-backend"
+            "console": "integratedTerminal"
         }
     ]
 }

@@ -7,6 +7,7 @@ from flask_cors import CORS
 
 from .database.models import setup_db, Drink
 from .auth.auth import AuthError, requires_auth
+from .auth.token_generator import get_test_token
 
 app = Flask(__name__)
 setup_db(app)
@@ -228,6 +229,82 @@ def delete_drink(payload, drink_id):
         raise
     except Exception as e:
         abort(422)
+
+
+# Test Endpoints
+
+@app.route('/test/token', methods=['GET'])
+def get_test_jwt():
+    """
+    GET /test/token?role=<role>
+    TESTING ONLY - Generate JWT tokens for test users.
+    
+    Query Parameters:
+        role (str): Either 'barista' or 'manager' (required)
+    
+    Returns:
+        200 with access_token, token_type, expires_in
+        400 if role parameter is missing or invalid
+        500 if token generation fails
+    
+    Example:
+        GET /test/token?role=barista
+        GET /test/token?role=manager
+    """
+    role = request.args.get('role')
+    
+    if not role:
+        return jsonify({
+            "success": False,
+            "error": 400,
+            "message": "role parameter is required (barista or manager)"
+        }), 400
+    
+    if role not in ['barista', 'manager']:
+        return jsonify({
+            "success": False,
+            "error": 400,
+            "message": "role must be either 'barista' or 'manager'"
+        }), 400
+    
+    try:
+        token_response = get_test_token(role)
+        
+        if not token_response:
+            return jsonify({
+                "success": False,
+                "error": 500,
+                "message": "Failed to generate token"
+            }), 500
+        
+        # Check for error in response
+        if "error" in token_response:
+            return jsonify({
+                "success": False,
+                "error": 500,
+                "message": token_response.get("message", token_response["error"])
+            }), 500
+        
+        return jsonify({
+            "success": True,
+            "role": role,
+            "token": token_response.get("access_token"),
+            "token_type": token_response.get("token_type"),
+            "expires_in": token_response.get("expires_in")
+        }), 200
+    
+    except ValueError as e:
+        return jsonify({
+            "success": False,
+            "error": 400,
+            "message": str(e)
+        }), 400
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": 500,
+            "message": "Internal server error"
+        }), 500
 
 
 # Error Handling
