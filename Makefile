@@ -1,6 +1,7 @@
 .PHONY: help install install-backend install-frontend \
 	run run-backend run-frontend \
 	test test-coverage test-backend test-backend-coverage test-frontend test-frontend-coverage \
+	db-init db-reset db-seed \
 	auth0-init auth0-init-help clean clean-backend clean-frontend \
 	lint lint-backend lint-frontend format format-backend format-frontend setup
 
@@ -27,6 +28,10 @@ help: ## Show this help message
 	echo   install                    Install all dependencies
 	echo   install-backend            Install backend dependencies
 	echo   install-frontend           Install frontend dependencies
+	echo DATABASE
+	echo   db-init                    Initialize and seed database
+	echo   db-reset                   Reset database completely
+	echo   db-seed                    Seed existing database with test data
 	echo RUN
 	echo   run                        Show commands to run backend/frontend
 	echo   run-backend                Run Flask backend
@@ -60,6 +65,21 @@ install-frontend: ## Install frontend dependencies
 	echo [Frontend] Installing Node dependencies...
 	cd /d "$(FRONTEND_DIR)" && npm install
 	echo Frontend dependencies installed
+
+db-init: ## Initialize database with seed data
+	echo [Database] Initializing and seeding database...
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" src\database\seed.py
+	echo Database initialized with seed data
+
+db-reset: ## Reset database completely (drop and recreate)
+	echo [Database] Resetting database...
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" src\database\seed.py --reset
+	echo Database reset complete
+
+db-seed: ## Seed existing database with test data
+	echo [Database] Seeding database...
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" src\database\seed.py --no-seed
+	echo Database seeding complete
 
 run: ## Run both backend and frontend (in separate terminals)
 	echo Starting Coffee Shop application...

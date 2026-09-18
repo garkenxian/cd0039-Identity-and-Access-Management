@@ -1,0 +1,27 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "install-backend",
+            "type": "shell",
+            "command": "${workspaceFolder}/Project/03_coffee_shop_full_stack/starter_code/backend/venv/Scripts/python.exe",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "-r",
+                "requirements.txt"
+            ],
+            "cwd": "${workspaceFolder}/Project/03_coffee_shop_full_stack/starter_code/backend",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false
+            },
+            "problemMatcher": [],
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}
