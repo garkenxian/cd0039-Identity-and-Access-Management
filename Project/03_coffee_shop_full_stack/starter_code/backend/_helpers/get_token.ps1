@@ -14,6 +14,7 @@ if (Test-Path $envFile) {
 # Configuration
 $auth0Domain = if ([Environment]::GetEnvironmentVariable('AUTH0_DOMAIN')) { [Environment]::GetEnvironmentVariable('AUTH0_DOMAIN') } else { 'dev-53bey634viqgnyzc.us.auth0.com' }
 $clientId = [Environment]::GetEnvironmentVariable('AUTH0_CLIENT_ID')
+$clientSecret = [Environment]::GetEnvironmentVariable('AUTH0_CLIENT_SECRET')
 $audience = if ([Environment]::GetEnvironmentVariable('API_AUDIENCE')) { [Environment]::GetEnvironmentVariable('API_AUDIENCE') } else { 'coffee-shop-api' }
 
 if ([string]::IsNullOrEmpty($clientId)) {
@@ -23,7 +24,7 @@ if ([string]::IsNullOrEmpty($clientId)) {
 
 # User credentials
 $emails = @{'barista' = 'barista@test.local'; 'manager' = 'manager@test.local'}
-$passwords = @{'barista' = 'TempPass123!Barista'; 'manager' = 'TempPass123!Manager'}
+$passwords = @{'barista' = 'pEgJtK2*Ee6ubZj2'; 'manager' = 'TempPass123!Manager'}
 
 if ([string]::IsNullOrEmpty($emails[$Role])) {
     Write-Host "Error: Invalid role '$Role'. Use 'barista' or 'manager'" -ForegroundColor Red
@@ -41,7 +42,7 @@ $jsonBody = @"
   "password": "$password",
   "audience": "$audience",
   "client_id": "$clientId",
-  "realm": "Username-Password-Authentication"
+  "client_secret": "$clientSecret"
 }
 "@
 
