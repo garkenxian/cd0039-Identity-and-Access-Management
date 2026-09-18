@@ -6,7 +6,40 @@
 - **Barista:** `barista@test.local` / `TempPass123!Barista`
 - **Manager:** `manager@test.local` / `TempPass123!Manager`
 
-## Getting JWT Tokens
+## CLI Automation (PowerShell)
+
+**Generate tokens directly from the command line:**
+
+```powershell
+make token-barista    # Generate barista JWT token
+make token-manager    # Generate manager JWT token
+```
+
+Or directly:
+```powershell
+cd Project/03_coffee_shop_full_stack/starter_code/backend/_helpers
+powershell -NoProfile -ExecutionPolicy Bypass -File get_token.ps1 -Role barista
+powershell -NoProfile -ExecutionPolicy Bypass -File get_token.ps1 -Role manager
+```
+
+### Enabling Password Grant in Auth0 (If 401 Error)
+
+If you get `401 Unauthorized`, you need to enable the password grant in Auth0:
+
+1. **Go to Auth0 Dashboard** → Applications → Select your app
+2. **Click Settings** tab
+3. **Scroll down to "Grant Types"**
+4. **Check the box for "Resource Owner Password"**
+5. **Scroll down to "Connections"**
+6. **Enable "Username-Password-Authentication"** connection
+7. **Save**
+
+Then try again:
+```powershell
+make token-barista
+```
+
+## Getting JWT Tokens (Alternative Methods)
 
 ### Option 1: Auth0 Dashboard (Easiest)
 1. Go to [Auth0 Dashboard](https://manage.auth0.com/dashboard)
@@ -32,6 +65,8 @@
 7. Postman will automatically add the token to your request header
 
 ### Option 3: cURL Command
+
+**Bash/Linux/Mac:**
 ```bash
 curl -X POST https://dev-53bey634viqgnyzc.us.auth0.com/oauth/token \
   -H "Content-Type: application/json" \
@@ -45,18 +80,27 @@ curl -X POST https://dev-53bey634viqgnyzc.us.auth0.com/oauth/token \
   }'
 ```
 
-For manager:
-```bash
-curl -X POST https://dev-53bey634viqgnyzc.us.auth0.com/oauth/token \
-  -H "Content-Type: application/json" \
-  -d '{
-    "grant_type": "password",
-    "username": "manager@test.local",
-    "password": "TempPass123!Manager",
-    "audience": "coffee-shop-api",
-    "client_id": "LhgYzneJPGKmuasdbBAQaMQt6MCEwYar",
-    "realm": "Username-Password-Authentication"
-  }'
+**PowerShell:**
+```powershell
+$body = @{
+    grant_type = "password"
+    username = "barista@test.local"
+    password = "TempPass123!Barista"
+    audience = "coffee-shop-api"
+    client_id = "LhgYzneJPGKmuasdbBAQaMQt6MCEwYar"
+    realm = "Username-Password-Authentication"
+} | ConvertTo-Json
+
+Invoke-WebRequest -Uri "https://dev-53bey634viqgnyzc.us.auth0.com/oauth/token" `
+    -Method POST `
+    -ContentType "application/json" `
+    -Body $body | Select-Object -ExpandProperty Content | ConvertFrom-Json
+```
+
+For manager, replace `username` and `password` with:
+```powershell
+username = "manager@test.local"
+password = "TempPass123!Manager"
 ```
 
 ## Using the Token

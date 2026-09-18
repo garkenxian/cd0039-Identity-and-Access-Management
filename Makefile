@@ -165,11 +165,13 @@ auth0-init-help: ## Show Auth0 setup help
 	echo   make auth0-init AUTH0_DOMAIN=your-domain.auth0.com AUTH0_CLIENT_ID=your_client_id AUTH0_CLIENT_SECRET=your_client_secret
 	echo Step 4: Enable 'Add Permissions in Access Token' in Auth0 API settings
 
-token-barista: ## Show instructions for getting barista JWT token
-	cd /d "$(HELPERS_DIR)" && $(PYTHON) generate_token.py
+token-barista: ## Generate barista JWT token for Postman testing
+	echo [Token] Generating barista JWT token...
+	cd /d "$(HELPERS_DIR)" && powershell -NoProfile -ExecutionPolicy Bypass -File "get_token.ps1" -Role "barista"
 
-token-manager: ## Show instructions for getting manager JWT token
-	cd /d "$(HELPERS_DIR)" && $(PYTHON) generate_token.py
+token-manager: ## Generate manager JWT token for Postman testing
+	echo [Token] Generating manager JWT token...
+	cd /d "$(HELPERS_DIR)" && powershell -NoProfile -ExecutionPolicy Bypass -File "get_token.ps1" -Role "manager"
 
 clean: clean-backend clean-frontend ## Clean up all generated files
 
