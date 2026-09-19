@@ -1007,7 +1007,7 @@ Work completed:
    - ✅ test.db - Local test database ignored ✓
    - ✅ .vscode/ - IDE settings ignored ✓
    - ✅ OS files (.DS_Store, Thumbs.db, etc.) ignored ✓
-   - ✅ No hardcoded secrets in committed files ✓
+  - ✅ No hardcoded user passwords in token tooling; runtime prompt required ✓
 
 **8. JWT Token Generation CLI - AUTOMATED (NEW):**
    - ✅ Auth0 Tenant Configuration: Default Directory set to `username-password-authentication`
@@ -1016,8 +1016,9 @@ Work completed:
      * `make token-barista`: Generates valid JWT for barista@test.local with barista permissions
      * `make token-manager`: Generates valid JWT for manager@test.local with manager permissions
    - ✅ Implementation: PowerShell script (backend/_helpers/get_token.ps1) with Auth0 password grant flow
+   - ✅ Security update: Script prompts interactively for user password (no embedded role passwords)
    - ✅ Token Verification:
-     * Barista token scopes: get:drinks, get:drinks-detail, post:drinks, patch:drinks, delete:drinks ✓
+     * Barista token scopes: get:drinks, get:drinks-detail ✓
      * Manager token scopes: get:drinks, get:drinks-detail, post:drinks, patch:drinks, delete:drinks ✓
      * Both tokens generated with correct audience (coffee-shop-api) and 24-hour TTL ✓
 
@@ -1096,7 +1097,7 @@ Decisions made:
 - Deployment readiness: Both test suites passing, all endpoints contract verified
 - Postman strategy: Collection structure ready, JWT tokens to be refreshed at submission time
 - CORS configuration: Backend properly configured for frontend integration
-- Code cleanliness: No hardcoded secrets, all configuration via environment variables
+- Code cleanliness: Runtime password prompt for token generation; sensitive values remain environment-driven
 
 **PHASE 4 ACCEPTANCE CHECKLIST:**
 - ✅ Backend test suite: 47/47 tests passing (88% coverage)

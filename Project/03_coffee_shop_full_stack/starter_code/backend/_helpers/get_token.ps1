@@ -24,7 +24,6 @@ if ([string]::IsNullOrEmpty($clientId)) {
 
 # User credentials
 $emails = @{'barista' = 'barista@test.local'; 'manager' = 'manager@test.local'}
-$passwords = @{'barista' = 'pEgJtK2*Ee6ubZj2'; 'manager' = 'TempPass123!Manager'}
 
 if ([string]::IsNullOrEmpty($emails[$Role])) {
     Write-Host "Error: Invalid role '$Role'. Use 'barista' or 'manager'" -ForegroundColor Red
@@ -32,7 +31,22 @@ if ([string]::IsNullOrEmpty($emails[$Role])) {
 }
 
 $email = $emails[$Role]
-$password = $passwords[$Role]
+# Prompt at runtime to avoid storing secrets in source.
+$securePassword = Read-Host -Prompt "Enter password for $email" -AsSecureString
+if (-not $securePassword -or $securePassword.Length -eq 0) {
+    Write-Host "Error: Password is required" -ForegroundColor Red
+    exit 1
+}
+
+$bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword)
+try {
+    $password = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+} finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+}
+
+$securePassword = $null
+
 $tokenUrl = "https://$auth0Domain/oauth/token"
 
 $jsonBody = @"
