@@ -101,19 +101,31 @@ def check_permissions(permission, payload):
     Returns:
         bool: True if permission check passes
     """
-    if 'permissions' not in payload:
-        raise AuthError({
-            'code': 'invalid_claims',
-            'description': 'Permissions not included in JWT.'
-        }, 400)
+    # Check for 'permissions' claim (standard JWT structure)
+    if 'permissions' in payload:
+        if permission not in payload['permissions']:
+            raise AuthError({
+                'code': 'insufficient_permissions',
+                'description': 'Permission not found.'
+            }, 403)
+        return True
     
-    if permission not in payload['permissions']:
-        raise AuthError({
-            'code': 'insufficient_permissions',
-            'description': 'Permission not found.'
-        }, 403)
+    # Check for 'scope' claim (Auth0 format - space-separated string)
+    if 'scope' in payload:
+        scopes = payload['scope'].split()
+        if permission not in scopes:
+            raise AuthError({
+                'code': 'insufficient_permissions',
+                'description': 'Permission not found.'
+            }, 403)
+        return True
     
-    return True
+    # If neither 'permissions' nor 'scope' found, raise error with debugging info
+    available_claims = ', '.join(payload.keys()) if payload else 'None'
+    raise AuthError({
+        'code': 'invalid_claims',
+        'description': f'Permissions not included in JWT. Available claims: {available_claims}'
+    }, 400)
 
 '''
 @TODO implement verify_decode_jwt(token) method
@@ -142,12 +154,24 @@ def verify_decode_jwt(token):
         dict: Decoded JWT payload
     """
     # Get the kid from the token header
-    unverified_header = jwt.get_unverified_header(token)
+    try:
+        unverified_header = jwt.get_unverified_header(token)
+    except ValueError as ve:
+        # Malformed token - doesn't have 3 parts separated by dots
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': 'Token is malformed. Expected JWT format with 3 parts separated by dots (header.payload.signature).'
+        }, 401)
+    except Exception as e:
+        raise AuthError({
+            'code': 'invalid_header',
+            'description': f'Token parsing failed: {str(e)}'
+        }, 401)
     
     if 'kid' not in unverified_header:
         raise AuthError({
             'code': 'invalid_header',
-            'description': 'Authorization malformed.'
+            'description': 'Token header is missing "kid" (key ID). Expected Auth0-issued JWT.'
         }, 401)
     
     # Fetch JWKS from Auth0
@@ -200,7 +224,7 @@ def verify_decode_jwt(token):
     except Exception as e:
         raise AuthError({
             'code': 'invalid_signature',
-            'description': 'Unable to parse authentication token.'
+            'description': f'Token verification failed: {str(e)}'
         }, 401)
 
 '''

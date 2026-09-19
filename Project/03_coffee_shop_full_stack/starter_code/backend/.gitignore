@@ -3,7 +3,6 @@
 .coverage.*
 htmlcov/
 coverage.xml
-.coveragerc
 
 # Testing
 .pytest_cache/

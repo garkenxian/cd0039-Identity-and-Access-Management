@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "install-backend",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-m",
+                "pip",
+                "install",
+                "-q",
+                "-r",
+                "requirements.txt"
+            ],
+            "cwd": "${workspaceFolder}/Project/03_coffee_shop_full_stack/starter_code/backend",
+            "presentation": {
+                "echo": false,
+                "reveal": "silent"
+            },
+            "problemMatcher": [],
+            "isBackground": false
+        }
+    ]
+}

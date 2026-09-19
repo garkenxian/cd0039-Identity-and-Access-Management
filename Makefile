@@ -1,7 +1,8 @@
 .PHONY: help install install-backend install-frontend \
 	run run-backend run-frontend \
 	test test-coverage test-backend test-backend-coverage test-frontend test-frontend-coverage \
-	auth0-init auth0-init-help clean clean-backend clean-frontend \
+	db-init db-reset db-seed \
+	auth0-init auth0-init-help token-barista token-manager clean clean-backend clean-frontend \
 	lint lint-backend lint-frontend format format-backend format-frontend setup
 
 SHELL := cmd.exe
@@ -27,6 +28,10 @@ help: ## Show this help message
 	echo   install                    Install all dependencies
 	echo   install-backend            Install backend dependencies
 	echo   install-frontend           Install frontend dependencies
+	echo DATABASE
+	echo   db-init                    Initialize and seed database
+	echo   db-reset                   Reset database completely
+	echo   db-seed                    Seed existing database with test data
 	echo RUN
 	echo   run                        Show commands to run backend/frontend
 	echo   run-backend                Run Flask backend
@@ -44,6 +49,8 @@ help: ## Show this help message
 	echo AUTH0
 	echo   auth0-init-help            Show Auth0 setup instructions
 	echo   auth0-init                 Initialize Auth0 resources
+	echo   token-barista              Generate barista JWT token for testing
+	echo   token-manager              Generate manager JWT token for testing
 	echo CLEAN
 	echo   clean                      Remove generated backend/frontend files
 
@@ -60,6 +67,21 @@ install-frontend: ## Install frontend dependencies
 	echo [Frontend] Installing Node dependencies...
 	cd /d "$(FRONTEND_DIR)" && npm install
 	echo Frontend dependencies installed
+
+db-init: ## Initialize database with seed data
+	echo [Database] Initializing and seeding database...
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" src\database\seed.py
+	echo Database initialized with seed data
+
+db-reset: ## Reset database completely (drop and recreate)
+	echo [Database] Resetting database...
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" src\database\seed.py --reset
+	echo Database reset complete
+
+db-seed: ## Seed existing database with test data
+	echo [Database] Seeding database...
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" src\database\seed.py --no-seed
+	echo Database seeding complete
 
 run: ## Run both backend and frontend (in separate terminals)
 	echo Starting Coffee Shop application...
@@ -90,7 +112,7 @@ test-backend-coverage: ## Run backend tests with coverage report
 	echo [Backend] Installing coverage dependencies...
 	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pip install -q pytest-cov
 	echo [Backend] Running pytest with coverage (minimum 80% required)...
-	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ --cov=src --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=80
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ --cov=src --cov-config=.coveragerc --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=80
 	echo Coverage report created in: htmlcov/index.html
 
 test-frontend: ## Run frontend tests (Karma)
@@ -142,6 +164,14 @@ auth0-init-help: ## Show Auth0 setup help
 	echo Step 3: Run command:
 	echo   make auth0-init AUTH0_DOMAIN=your-domain.auth0.com AUTH0_CLIENT_ID=your_client_id AUTH0_CLIENT_SECRET=your_client_secret
 	echo Step 4: Enable 'Add Permissions in Access Token' in Auth0 API settings
+
+token-barista: ## Generate barista JWT token for Postman testing
+	echo [Token] Generating barista JWT token...
+	cd /d "$(HELPERS_DIR)" && powershell -NoProfile -ExecutionPolicy Bypass -File "get_token.ps1" -Role "barista"
+
+token-manager: ## Generate manager JWT token for Postman testing
+	echo [Token] Generating manager JWT token...
+	cd /d "$(HELPERS_DIR)" && powershell -NoProfile -ExecutionPolicy Bypass -File "get_token.ps1" -Role "manager"
 
 clean: clean-backend clean-frontend ## Clean up all generated files
 
