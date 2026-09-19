@@ -120,10 +120,11 @@ def check_permissions(permission, payload):
             }, 403)
         return True
     
-    # If neither 'permissions' nor 'scope' found, raise error
+    # If neither 'permissions' nor 'scope' found, raise error with debugging info
+    available_claims = ', '.join(payload.keys()) if payload else 'None'
     raise AuthError({
         'code': 'invalid_claims',
-        'description': 'Permissions not included in JWT.'
+        'description': f'Permissions not included in JWT. Available claims: {available_claims}'
     }, 400)
 
 '''

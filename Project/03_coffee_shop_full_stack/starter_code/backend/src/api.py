@@ -4,6 +4,10 @@ from werkzeug.exceptions import HTTPException
 from sqlalchemy import exc
 import json
 from flask_cors import CORS
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(os.path.dirname(__file__), '..', '_helpers', '.env'))
 
 from .database.models import setup_db, Drink
 from .auth.auth import AuthError, requires_auth
