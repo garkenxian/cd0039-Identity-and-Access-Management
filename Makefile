@@ -112,7 +112,7 @@ test-backend-coverage: ## Run backend tests with coverage report
 	echo [Backend] Installing coverage dependencies...
 	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pip install -q pytest-cov
 	echo [Backend] Running pytest with coverage (minimum 80% required)...
-	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ --cov=src --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=80
+	cd /d "$(BACKEND_DIR)" && "$(VENV)\Scripts\python.exe" -m pytest tests/ --cov=src --cov-config=.coveragerc --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=80
 	echo Coverage report created in: htmlcov/index.html
 
 test-frontend: ## Run frontend tests (Karma)
